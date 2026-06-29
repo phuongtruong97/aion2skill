@@ -78,7 +78,8 @@ async function runCompareProcess() {
 // --- 2. LOAD DATA (NO CACHE) ---
 async function loadAndProcessData(folderName) {
     const db = { iconDb: {}, dbDmg: {}, dbAbn: {}, dbSkillLv: {}, dbDmgLv: {}, dbAbnLv: {}, dbFilter: {}, skillMap: {} };
-    const path = `./data/${folderName}`;
+    // Dùng data_min (bản đã lọc field, nhẹ hơn ~86%) thay cho data gốc của game
+    const path = `./data_min/${folderName}`;
     const ts = Date.now(); 
 
     const files = [
@@ -98,7 +99,7 @@ async function loadAndProcessData(folderName) {
                 const json = await res.json();
                 f.fn(json, f.target);
             }
-        } catch(e) {}
+        } catch(e) { console.error(`Lỗi xử lý ${f.name}:`, e); }
     }));
 
     try {
@@ -108,7 +109,7 @@ async function loadAndProcessData(folderName) {
             const wb = XLSX.read(new Uint8Array(buf), {type:'array'});
             db.skillMap = processExcelSmart(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1}), db.iconDb);
         }
-    } catch(e) {}
+    } catch(e) { console.error('Lỗi xử lý text.xlsx:', e); }
     
     return db;
 }
@@ -746,7 +747,7 @@ function processExcelSmart(rows, iconDb) {
 
 // --- SCAN HELPERS ---
 function scanSkill_C(d, db) { if(d && typeof d === 'object'){ if (d.ID && d.ID.Value) { let entry = db[d.ID.Value] || {}; if(d.SkillIcon) entry.icon = d.SkillIcon.replace(/\\/g, '/').split('/').pop().toLowerCase() + ".png"; if(d.NeedCoolTime !== undefined) entry.cd = d.NeedCoolTime; if(d.NeedCostMp !== undefined) entry.mp = d.NeedCostMp; if(d.SkillLvGroupId) entry.gid = d.SkillLvGroupId; if(d.SkillType) entry.type = d.SkillType; db[d.ID.Value] = entry; } Object.values(d).forEach(v => scanSkill_C(v, db)); } }
-function scanSkillLv_C(d, db) { if(d && typeof d==='object' && d.SkillLvGroupId && d.SkillLv) { if(!db[d.SkillLvGroupId]) db[d.SkillLvGroupId] = {}; db[d.SkillLvGroupId][d.SkillLv] = { mp: d.NeedCostMp, cd: d.NeedCoolTime }; } Object.values(d).forEach(v => scanSkillLv_C(v, db)); }
+function scanSkillLv_C(d, db) { if(d && typeof d==='object'){ if(d.SkillLvGroupId && d.SkillLv) { if(!db[d.SkillLvGroupId]) db[d.SkillLvGroupId] = {}; db[d.SkillLvGroupId][d.SkillLv] = { mp: d.NeedCostMp, cd: d.NeedCoolTime }; } Object.values(d).forEach(v => scanSkillLv_C(v, db)); } }
 // Thay thế hàm scanJson_C cũ bằng hàm này
 function scanJson_C(d, db) { 
     if(d && typeof d === 'object'){ 
