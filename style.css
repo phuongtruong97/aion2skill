@@ -573,15 +573,7 @@ input[type=range] { flex-grow: 1; accent-color: var(--accent); cursor: pointer; 
     color: #0c0d12;
     box-shadow: 0 0 8px var(--accent-glow);
 }
-.skill-btn.has-chain::after {
-    content: '';
-    position: absolute;
-    right: 2px; bottom: 2px;
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 4px var(--accent-glow);
-}
+/* Đã bỏ chấm báo hiệu .has-chain theo yêu cầu — viền nét đứt khi mở rộng (.chain-child-btn) đã đủ rõ */
 
 /* Skill con của chain — xuất hiện khi click skill cha */
 .chain-child-btn {

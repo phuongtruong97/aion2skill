@@ -447,7 +447,6 @@ function renderSkillList() {
         const skillName = s['name_' + currentLang] || s.name_en || s.name_vi || '';
         d.setAttribute('data-name', skillName);
         d.innerHTML = `<div class="id-label">${s.prefix}</div>`;
-        if(s.chainNext && s.chainNext.length) d.classList.add('has-chain');
         if(s.elementSiblings && s.elementSiblings.length > 1) d.classList.add('has-variant');
         d.onclick = () => { loadSkill(s, d, true); toggleChain(s, d); };
         return d;
@@ -499,7 +498,7 @@ function expandChain(skill, btnEl) {
             const skillName = s['name_' + currentLang] || s.name_en || s.name_vi || '';
             d.setAttribute('data-name', skillName);
             d.innerHTML = `<div class="id-label">${s.prefix}</div>`;
-            d.onclick = (e) => { e.stopPropagation(); loadSkill(s, d, true); toggleChain(s, d); };
+            d.onclick = (e) => { e.stopPropagation(); loadSkill(s, d, true); };
             return d;
         })(childSkill);
         prevBtn.insertAdjacentElement('afterend', cBtn);
