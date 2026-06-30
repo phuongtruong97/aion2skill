@@ -30,6 +30,7 @@ KEEP_FIELDS = {
     "Skill.json": [
         "ID", "SkillIcon", "NeedCoolTime", "NeedCostMp",
         "SkillLvGroupId", "SkillType",
+        "ChainSkillPrevSkillId", "AttributeType", "CancelExceptionSkillIdList",
     ],
     "SkillLv.json": [
         "SkillLvGroupId", "SkillLv", "NeedCostMp", "NeedCoolTime",

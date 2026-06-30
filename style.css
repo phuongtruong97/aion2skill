@@ -491,6 +491,7 @@ input[type=range] { flex-grow: 1; accent-color: var(--accent); cursor: pointer; 
     border-radius: 4px;
     cursor: pointer;
     position: relative;
+    z-index: 2;
     transition: border-color 0.12s, transform 0.1s, box-shadow 0.12s;
     overflow: hidden;
 }
@@ -511,6 +512,106 @@ input[type=range] { flex-grow: 1; accent-color: var(--accent); cursor: pointer; 
     border-color: var(--accent);
     box-shadow: 0 0 0 1px var(--accent), 0 0 12px var(--accent-glow);
     z-index: 2;
+}
+
+/* Skill có biến thể hệ (element variant) — chấm xanh góc trên-trái */
+.skill-btn.has-variant::before {
+    content: '';
+    position: absolute;
+    left: 2px; top: 2px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #4dd0ff;
+    box-shadow: 0 0 4px rgba(77,208,255,0.8);
+    z-index: 3;
+}
+
+/* Thanh điều hướng < tag tag tag > cho skill biến thể hệ */
+.variant-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+.variant-arrow {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid #3d4460;
+    color: #cfd3e0;
+    border-radius: 4px;
+    width: 22px; height: 22px;
+    line-height: 1;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    flex-shrink: 0;
+}
+.variant-arrow:hover { background: rgba(255,255,255,0.14); border-color: var(--accent); }
+.variant-arrow:active { transform: scale(0.9); }
+.variant-pills {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.variant-pill {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    border: 1px solid #3d4460;
+    color: #9aa0b4;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+.variant-pill:hover { border-color: var(--accent); color: #e8eaf0; }
+.variant-pill.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0c0d12;
+    box-shadow: 0 0 8px var(--accent-glow);
+}
+.skill-btn.has-chain::after {
+    content: '';
+    position: absolute;
+    right: 2px; bottom: 2px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 4px var(--accent-glow);
+}
+
+/* Skill con của chain — xuất hiện khi click skill cha */
+.chain-child-btn {
+    opacity: 0;
+    transform: scale(0.5);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    outline: 1px dashed var(--accent);
+    outline-offset: -1px;
+}
+.chain-child-btn.chain-show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.skill-grid.chain-grid-active { position: relative; }
+
+.chain-connector-svg { z-index: 1; }
+.chain-line {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
+    stroke-dasharray: 600;
+    stroke-dashoffset: 600;
+    animation: chainDraw 0.5s ease forwards;
+}
+@keyframes chainDraw {
+    to { stroke-dashoffset: 0; }
 }
 
 /* Tooltip tên khi hover */

@@ -229,8 +229,76 @@ function processExcel(rows) {
             }
         }
         
+        // --- NHÓM SKILL LIÊN KẾT (CHAIN SKILL) ---
+        // Cơ sở: ChainSkillPrevSkillId trong Skill.json (ví dụ 1705 chain từ 1704)
         for(let key in grouped) {
             const skill = grouped[key];
+            let chainPrevId = null;
+            for(let suf in skill.variants) {
+                const fullId = parseInt(key + suf);
+                if(iconDb[fullId] && iconDb[fullId].chainPrev) { chainPrevId = iconDb[fullId].chainPrev; break; }
+            }
+            if(!chainPrevId) {
+                const baseFullId = parseInt(key + '0000');
+                if(iconDb[baseFullId] && iconDb[baseFullId].chainPrev) chainPrevId = iconDb[baseFullId].chainPrev;
+            }
+            if(chainPrevId) {
+                const prevPrefix = String(chainPrevId).substring(0, 4);
+                if(prevPrefix !== key) skill.chainPrevPrefix = prevPrefix;
+            }
+        }
+        for(let key in grouped) {
+            const skill = grouped[key];
+            if(!skill.chainPrevPrefix) continue;
+            const parent = grouped[skill.chainPrevPrefix];
+            if(parent && parent !== skill) {
+                if(!parent.chainNext) parent.chainNext = [];
+                parent.chainNext.push(skill);
+                skill.isChainChild = true;
+            }
+        }
+
+        // --- NHÓM SKILL BIẾN THỂ HỆ (ELEMENT VARIANT) ---
+        // Cơ sở: CancelExceptionSkillIdList trỏ chéo lẫn nhau giữa các skill cùng slot khác hệ
+        // (vd: 1701 Đất / 1702 Magic / 1703 Tấn Công — KHÔNG dùng ChainSkillPrevSkillId)
+        let visitedVariant = {};
+        for(let key in grouped) {
+            if(visitedVariant[key]) continue;
+            const skill = grouped[key];
+            if(skill.isChainChild) continue;
+
+            const baseFullId = parseInt(key + '0000');
+            const baseEntry = iconDb[baseFullId];
+            if(!baseEntry || !baseEntry.cancelExcept || !baseEntry.cancelExcept.length) continue;
+
+            let siblingPrefixes = new Set();
+            baseEntry.cancelExcept.forEach(id => {
+                const p = String(id).substring(0, 4);
+                if(p !== key && grouped[p] && !grouped[p].isChainChild) siblingPrefixes.add(p);
+            });
+            if(siblingPrefixes.size === 0) continue;
+
+            let cliquePrefixes = [key, ...siblingPrefixes].sort();
+            const mainKey = cliquePrefixes[0];
+            const mainSkill = grouped[mainKey];
+
+            cliquePrefixes.forEach(p => {
+                const e = iconDb[parseInt(p + '0000')];
+                if(e && e.attr) grouped[p].attr = e.attr;
+            });
+
+            mainSkill.elementSiblings = cliquePrefixes.map(p => grouped[p]).filter(Boolean);
+            cliquePrefixes.forEach(p => {
+                visitedVariant[p] = true;
+                grouped[p].elementSiblings = mainSkill.elementSiblings; // dùng chung mảng để mọi skill trong clique đều biết các skill còn lại
+                if(p !== mainKey) grouped[p].isElementVariant = true;
+            });
+        }
+
+        for(let key in grouped) {
+            const skill = grouped[key];
+            if(skill.isChainChild) continue; // Bỏ qua, sẽ hiện khi click vào skill cha
+            if(skill.isElementVariant) continue; // Bỏ qua, sẽ hiện qua mũi tên chuyển hệ
 
             // 1. Lấy tên skill và chuyển về chữ thường hết
             const nCheck = (skill.name_en || "").toLowerCase().trim();
@@ -366,11 +434,12 @@ function selectClass(cls, btnEl) {
 // --- 3. UI RENDER ---
 function renderSkillList() {
     const cls = currentClass;
+    expandedChain = null; // grid sắp bị xoá, mọi chain đang mở đều mất theo
     const gActive = document.getElementById('grid-active'), gStigma = document.getElementById('grid-stigma'), gPassive = document.getElementById('grid-passive');
     gActive.innerHTML = ""; gStigma.innerHTML = ""; gPassive.innerHTML = "";
     if(!cls || !skillMap[cls]) return;
     
-    const makeBtn = (s) => {
+    const buildSkillBtn = (s) => {
         const d = document.createElement('div'); d.className = 'skill-btn';
         const icon = getIcon(s.className, s.baseId);
         if(icon) d.style.backgroundImage = `url('${icon}')`;
@@ -378,14 +447,126 @@ function renderSkillList() {
         const skillName = s['name_' + currentLang] || s.name_en || s.name_vi || '';
         d.setAttribute('data-name', skillName);
         d.innerHTML = `<div class="id-label">${s.prefix}</div>`;
-        d.onclick = () => loadSkill(s, d, true);
+        if(s.chainNext && s.chainNext.length) d.classList.add('has-chain');
+        if(s.elementSiblings && s.elementSiblings.length > 1) d.classList.add('has-variant');
+        d.onclick = () => { loadSkill(s, d, true); toggleChain(s, d); };
         return d;
     };
+    const makeBtn = buildSkillBtn;
     
     skillMap[cls].active.forEach(s => gActive.appendChild(makeBtn(s)));
     skillMap[cls].stigma.forEach(s => gStigma.appendChild(makeBtn(s)));
     skillMap[cls].passive.forEach(s => gPassive.appendChild(makeBtn(s)));
 }
+
+// --- CHAIN SKILL: MỞ RỘNG / THU GỌN SKILL LIÊN KẾT ---
+let expandedChain = null; // { btnEl, grid, childBtns: [] }
+
+function getChainSequence(skill) {
+    let seq = [];
+    (function walk(list) {
+        (list || []).forEach(c => { seq.push(c); if(c.chainNext) walk(c.chainNext); });
+    })(skill.chainNext);
+    return seq;
+}
+
+function toggleChain(skill, btnEl) {
+    if(expandedChain && expandedChain.btnEl === btnEl) { collapseChain(); return; }
+    if(skill.chainNext && skill.chainNext.length) expandChain(skill, btnEl);
+    else collapseChain();
+}
+
+function collapseChain() {
+    if(!expandedChain) return;
+    expandedChain.childBtns.forEach(b => b.remove());
+    const svg = expandedChain.grid.querySelector('.chain-connector-svg');
+    if(svg) svg.remove();
+    expandedChain = null;
+}
+
+function expandChain(skill, btnEl) {
+    collapseChain();
+    const grid = btnEl.parentElement;
+    grid.classList.add('chain-grid-active');
+    const seq = getChainSequence(skill);
+    let prevBtn = btnEl, insertedBtns = [];
+
+    seq.forEach(childSkill => {
+        const cBtn = (function build(s) {
+            const d = document.createElement('div'); d.className = 'skill-btn chain-child-btn';
+            const icon = getIcon(s.className, s.baseId);
+            if(icon) d.style.backgroundImage = `url('${icon}')`;
+            const skillName = s['name_' + currentLang] || s.name_en || s.name_vi || '';
+            d.setAttribute('data-name', skillName);
+            d.innerHTML = `<div class="id-label">${s.prefix}</div>`;
+            d.onclick = (e) => { e.stopPropagation(); loadSkill(s, d, true); toggleChain(s, d); };
+            return d;
+        })(childSkill);
+        prevBtn.insertAdjacentElement('afterend', cBtn);
+        insertedBtns.push(cBtn);
+        prevBtn = cBtn;
+    });
+
+    expandedChain = { btnEl, grid, childBtns: insertedBtns };
+
+    // Hiệu ứng xuất hiện tuần tự
+    requestAnimationFrame(() => {
+        insertedBtns.forEach((b, i) => setTimeout(() => b.classList.add('chain-show'), i * 90));
+    });
+
+    // Vẽ đường nối sau khi layout ổn định
+    setTimeout(() => {
+        if(!expandedChain || expandedChain.btnEl !== btnEl) return;
+        const svg = createConnectorSvg(grid);
+        const chain = [btnEl, ...insertedBtns];
+        for(let i = 0; i < chain.length - 1; i++) drawConnectorLine(svg, grid, chain[i], chain[i+1]);
+    }, seq.length * 90 + 80);
+}
+
+function createConnectorSvg(grid) {
+    const old = grid.querySelector('.chain-connector-svg');
+    if(old) old.remove();
+    grid.style.position = 'relative';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'chain-connector-svg');
+    svg.style.position = 'absolute';
+    svg.style.left = '0'; svg.style.top = '0';
+    svg.style.width = grid.clientWidth + 'px';
+    svg.style.height = grid.scrollHeight + 'px';
+    svg.style.pointerEvents = 'none';
+    svg.style.overflow = 'visible';
+    grid.appendChild(svg);
+    return svg;
+}
+
+function drawConnectorLine(svg, grid, elA, elB) {
+    const gRect = grid.getBoundingClientRect();
+    const a = elA.getBoundingClientRect(), b = elB.getBoundingClientRect();
+    const ax = a.left - gRect.left, ay = a.top - gRect.top;
+    const bx = b.left - gRect.left, by = b.top - gRect.top;
+    const sameRow = Math.abs(ay - by) < 4;
+
+    const ns = 'http://www.w3.org/2000/svg';
+    const path = document.createElementNS(ns, 'path');
+    let d;
+    if(sameRow) {
+        const x1 = ax + a.width, y1 = ay + a.height/2;
+        const x2 = bx, y2 = by + b.height/2;
+        d = `M ${x1} ${y1} L ${x2} ${y2}`;
+    } else {
+        // Xuống hàng: nối ra lề phải, vòng xuống, nối vào từ lề trái
+        const x1 = ax + a.width, y1 = ay + a.height/2;
+        const x2 = bx, y2 = by + b.height/2;
+        const rightEdge = grid.clientWidth;
+        const midY = (y1 + y2) / 2;
+        d = `M ${x1} ${y1} L ${rightEdge} ${y1} L ${rightEdge} ${midY} L 0 ${midY} L 0 ${y2} L ${x2} ${y2}`;
+    }
+    path.setAttribute('d', d);
+    path.setAttribute('class', 'chain-line');
+    svg.appendChild(path);
+}
+
+window.addEventListener('resize', () => collapseChain());
 
 function updateLevel(val) { 
     currentLevel = parseInt(val); 
@@ -432,6 +613,57 @@ function closeMobileOverlay() {
     document.getElementById('ui-tooltip').classList.remove('mobile-active');
 }
 
+// --- ELEMENT VARIANT: NHÃN HỆ + THANH ĐIỀU HƯỚNG < > ---
+const ATTR_LABEL = {
+    Earth: { vi: 'Đất', en: 'Earth' },
+    Water: { vi: 'Thủy', en: 'Water' },
+    Fire:  { vi: 'Hỏa', en: 'Fire' },
+    Wind:  { vi: 'Phong', en: 'Wind' },
+    Light: { vi: 'Quang', en: 'Light' },
+    Dark:  { vi: 'Ám', en: 'Dark' },
+    None:  { vi: 'Vật Lý', en: 'Physical' }
+};
+function attrLabel(attr) {
+    if(!attr) return '';
+    const k = attr.split('::').pop();
+    return (ATTR_LABEL[k] && ATTR_LABEL[k][currentLang]) || k;
+}
+
+function renderVariantNav(skill) {
+    const vnav = document.getElementById('ui-variant-nav');
+    if(!vnav) return;
+    vnav.innerHTML = '';
+    const group = skill.elementSiblings;
+    if(!group || group.length < 2) { vnav.style.display = 'none'; return; }
+
+    vnav.style.display = 'flex';
+    const idx = group.indexOf(skill);
+
+    const goTo = (i) => loadSkill(group[(i + group.length) % group.length], null, false);
+
+    const prevBtn = document.createElement('button');
+    prevBtn.type = 'button'; prevBtn.className = 'variant-arrow'; prevBtn.innerHTML = '&#8249;';
+    prevBtn.onclick = () => goTo(idx - 1);
+
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button'; nextBtn.className = 'variant-arrow'; nextBtn.innerHTML = '&#8250;';
+    nextBtn.onclick = () => goTo(idx + 1);
+
+    const pillWrap = document.createElement('div');
+    pillWrap.className = 'variant-pills';
+    group.forEach((sib, i) => {
+        const pill = document.createElement('div');
+        pill.className = 'variant-pill' + (i === idx ? ' active' : '');
+        pill.innerText = attrLabel(sib.attr) || sib.prefix;
+        pill.onclick = () => goTo(i);
+        pillWrap.appendChild(pill);
+    });
+
+    vnav.appendChild(prevBtn);
+    vnav.appendChild(pillWrap);
+    vnav.appendChild(nextBtn);
+}
+
 function loadSkill(skill, btn, shouldOpenOverlay) {
     currentSkill = skill; selectedRunes = [];
     if(btn) {
@@ -440,6 +672,7 @@ function loadSkill(skill, btn, shouldOpenOverlay) {
     }
     
     document.getElementById('ui-name').innerText = skill['name_' + currentLang];
+    renderVariantNav(skill);
     const icon = getIcon(skill.className, skill.baseId);
     const iconEl = document.getElementById('ui-icon');
     iconEl.style.backgroundImage = icon ? `url('${icon}')` : 'none';
@@ -595,6 +828,9 @@ function scanSkill(d) {
             if(d.NeedCostMp !== undefined) entry.mp = d.NeedCostMp;
             if(d.SkillLvGroupId) entry.gid = d.SkillLvGroupId;
             if(d.SkillType) entry.type = d.SkillType;
+            if(d.ChainSkillPrevSkillId && d.ChainSkillPrevSkillId.Value) entry.chainPrev = d.ChainSkillPrevSkillId.Value;
+            if(d.AttributeType) entry.attr = d.AttributeType;
+            if(d.CancelExceptionSkillIdList) entry.cancelExcept = d.CancelExceptionSkillIdList.map(x => x && x.Value).filter(v => v);
 
             iconDb[parseInt(id)] = entry;
         }
