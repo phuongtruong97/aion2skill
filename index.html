@@ -7,8 +7,6 @@
     
     <link rel="icon" type="image/png" href="icons/logo.png">
     
-    <!-- xlsx.full.min.js (v0.18.5, lấy từ npm registry) đã có sẵn trong repo.
-         Dòng fallback dưới chỉ chạy nếu file local lỡ bị thiếu khi deploy. -->
     <script src="xlsx.full.min.js"></script>
     <script>if (!window.XLSX) document.write('<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"><\/script>');</script>
 
@@ -16,33 +14,45 @@
 </head>
 <body>
 
+    <!-- ====== IO PANEL ====== -->
     <div class="io-panel">
         <div class="nav-tabs">
-            <button class="nav-btn active" id="btn-tab-search" onclick="switchTab('search')">Skill</button>
-            <button class="nav-btn" id="btn-tab-compare" onclick="clickPatchNote()">Patch Note</button>
+            <button class="nav-btn active" id="btn-tab-search" onclick="switchTab('search')">
+                <div class="nav-btn-icon" style="background-image: url('./icons/skill.png');"></div>
+                Skill
+            </button>
+            <button class="nav-btn" id="btn-tab-compare" onclick="clickPatchNote()">
+                Patch Note
+            </button>
         </div>
 
-        <div class="loading-container" style="margin-left: 20px;"> 
+        <div class="loading-container">
             <div class="spinner" id="ui-spinner"></div>
             <div id="status">Checking Environment...</div>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 15px;">
-    
-    <a href="https://discord.gg/neotw" target="_blank" style="text-decoration: none; display: flex; align-items: center; gap: 15px;">
-        <img src="https://static.vecteezy.com/system/resources/previews/018/930/604/large_2x/discord-logo-discord-icon-transparent-free-png.png" alt="Discord" style="height: 30px; width: 30px;">
-        
-        <span style="color: var(--text-main); font-size: 12px; font-weight: bold;">Discord</span>
-    </a>
-    <span style="color: var(--text-main); opacity: 0.5; font-size: 12px; font-weight: bold; white-space: nowrap; font-family: monospace;">#Yoha555</span>
-    <select id="ui-lang" class="lang-select" onchange="changeLanguage()">
-    <option value="vi">Tiếng Việt</option> 
-    <option value="en" selected>English</option>
-</select>
-</div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <a href="https://discord.gg/neotw" target="_blank" class="discord-link">
+                <img src="https://static.vecteezy.com/system/resources/previews/018/930/604/large_2x/discord-logo-discord-icon-transparent-free-png.png" alt="Discord">
+                <span>Discord</span>
+            </a>
+            <span style="color:#444; font-size:12px; font-weight:600; white-space:nowrap; font-family:monospace;">#Yoha555</span>
+            <select id="ui-lang" class="lang-select" onchange="changeLanguage()">
+                <option value="vi">Tiếng Việt</option>
+                <option value="en" selected>English</option>
+            </select>
+        </div>
     </div>
 
+    <!-- ====== CLASS BAR STRIP (dưới io-panel, full width) ====== -->
+    <div class="class-bar-strip">
+        <div class="class-icon-bar" id="ui-class-bar"></div>
+    </div>
+
+    <!-- ====== SEARCH VIEW ====== -->
     <div class="main-content" id="view-search">
+
+        <!-- Skill Detail Tooltip -->
         <div class="tooltip-box" id="ui-tooltip">
             <div class="close-overlay-btn" onclick="closeMobileOverlay()">✕</div>
 
@@ -51,11 +61,13 @@
                 <div class="skill-info">
                     <h2 class="skill-name" id="ui-name">Skill Name</h2>
                     <div class="skill-meta" id="ui-meta">
-                        <div class="meta-item" title="MP Cost">
-                            <span>💧</span> <span class="meta-val" id="ui-mp">--</span>
+                        <div class="meta-item">
+                            <span class="meta-label">MP</span>
+                            <span class="meta-val" id="ui-mp">--</span>
                         </div>
-                        <div class="meta-item" title="Cooldown">
-                            <span>⏳</span> <span class="meta-val" id="ui-cd">--</span>
+                        <div class="meta-item">
+                            <span class="meta-label">CD</span>
+                            <span class="meta-val" id="ui-cd">--</span>
                         </div>
                     </div>
                     <div class="skill-spec-tag" id="ui-spec-tag"></div>
@@ -63,8 +75,9 @@
             </div>
 
             <div class="level-control">
-                <span style="font-size:12px;color:#888">LV:</span>
+                <span class="lv-label">1</span>
                 <input type="range" id="lv-slider" min="1" max="30" value="1" oninput="updateLevel(this.value)">
+                <span class="lv-label">30</span>
                 <span class="level-val" id="lv-display">1</span>
             </div>
 
@@ -73,15 +86,15 @@
             <div class="spec-container" id="ui-spec-container">
                 <div class="spec-header">
                     <span id="label-spec">SPECIALIZATION</span>
-                    <span id="ui-spec-count" style="color:#888">0/3</span>
+                    <span id="ui-spec-count" style="color:#555; font-size:11px;">0/3</span>
                 </div>
                 <div class="rune-slots" id="ui-slots"></div>
                 <div class="rune-pool" id="ui-runes"></div>
             </div>
         </div>
 
+        <!-- Skill List Panel -->
         <div class="list-panel">
-            <div class="class-icon-bar" id="ui-class-bar"></div>
             <div class="scroll-area">
                 <div class="category-header" id="cat-active">Active</div>
                 <div class="skill-grid" id="grid-active"></div>
@@ -92,50 +105,49 @@
             </div>
         </div>
     </div>
-    
-    <div id="view-compare" style="display: none; width: 95%; max-width: 1400px; margin-top: 20px;">
-        
-        <div style="width: 95%; max-width: 1400px; margin: 20px auto;">
-            
-            <div style="margin-bottom: 20px; display: flex; justify-content: center; gap: 20px; background: #15171e; padding: 15px; border-radius: 8px; border: 1px solid #333; flex-wrap: wrap;">
+
+    <!-- ====== COMPARE VIEW ====== -->
+    <div id="view-compare" style="display:none; width:95%; max-width:1400px; margin-top:20px;">
+        <div style="width:95%; max-width:1400px; margin:20px auto;">
+
+            <div class="compare-controls">
                 <div>
-                    <span style="color:#888; margin-right: 10px;">Patch trước:</span>
-                    <select id="ver-select-a" class="c-select" style="width: 200px; padding: 8px; background: #222; color: #fff; border: 1px solid #444; border-radius: 4px;"></select>
+                    <label>Patch trước</label>
+                    <select id="ver-select-a" class="c-select"></select>
                 </div>
                 <div>
-                    <span style="color:#888; margin-right: 10px;">Patch mới:</span>
-                    <select id="ver-select-b" class="c-select" style="width: 200px; padding: 8px; background: #222; color: #fff; border: 1px solid #444; border-radius: 4px;"></select>
+                    <label>Patch mới</label>
+                    <select id="ver-select-b" class="c-select"></select>
                 </div>
-                <button onclick="runCompareProcess()" style="background: var(--accent); color: #000; border: none; padding: 8px 20px; border-radius: 4px; font-weight: bold; cursor: pointer;">RELOAD</button>
+                <button class="reload-btn" onclick="runCompareProcess()">↺ Reload</button>
             </div>
 
-            <div id="compare-progress-container" style="display:none; margin-bottom: 20px; background: #111; padding: 15px; border-radius: 6px; border: 1px solid #333;">
-                <div style="color: #aaa; font-size: 12px; margin-bottom: 8px; display: flex; justify-content: space-between;">
+            <div id="compare-progress-container" style="display:none; margin-bottom:18px;">
+                <div style="color:#666; font-size:11px; margin-bottom:8px; display:flex; justify-content:space-between; text-transform:uppercase; letter-spacing:0.5px;">
                     <span id="progress-text">Đang chuẩn bị...</span>
                     <span id="progress-percent">0%</span>
                 </div>
-                <div style="width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden;">
-                    <div id="progress-bar" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.2s;"></div>
+                <div style="width:100%; height:4px; background:#1e2029; border-radius:2px; overflow:hidden;">
+                    <div id="progress-bar" style="width:0%; height:100%; background:var(--accent); transition:width 0.2s;"></div>
                 </div>
             </div>
 
-            <div id="compare-results-area" style="display:none; flex-direction: column; gap: 10px; margin-bottom: 50px;">
+            <div id="compare-results-area" style="display:none; flex-direction:column; gap:10px; margin-bottom:50px;">
                 <div id="diff-grouped-list"></div>
             </div>
-
         </div>
-
     </div>
 
-    <div id="compare-modal" class="modal-overlay" style="display: none;">
+    <!-- ====== COMPARE MODAL ====== -->
+    <div id="compare-modal" class="modal-overlay" style="display:none;">
         <div class="modal-content">
             <div class="modal-close" onclick="closeCompareModal()">✕</div>
-            
+
             <div class="modal-header-row">
-                <div id="modal-icon" class="skill-icon" style="border-color: #aaa;"></div>
-                <div style="text-align: left;">
-                    <h2 id="modal-skill-name" style="margin:0; color: var(--accent);">Skill Name</h2>
-                    <div id="modal-skill-id" style="font-size: 12px; color: #666;">ID: 0000</div>
+                <div id="modal-icon" class="skill-icon" style="width:52px; height:52px; border-color:#555;"></div>
+                <div>
+                    <h2 id="modal-skill-name" style="margin:0; color:var(--accent); font-size:18px; font-weight:700;">Skill Name</h2>
+                    <div id="modal-skill-id" style="font-size:11px; color:#444; margin-top:2px;">ID: 0000</div>
                 </div>
             </div>
 
@@ -153,27 +165,17 @@
         </div>
     </div>
 
-    <div class="footer">
-        Tạo bởi Yoha
-    </div>
+    <div class="footer">Tạo bởi Yoha</div>
 
     <script src="script.js"></script>
     <script src="compare.js"></script>
 
     <script>
         function clickPatchNote() {
-            // 1. Chuyển Tab (Hàm có sẵn trong script.js)
             switchTab('compare');
-
-            // 2. Tự động chạy quét sau 1 khoảng trễ nhỏ
-            // (Để đảm bảo giao diện đã hiện và file versions.json đã load xong vào thẻ select)
             setTimeout(() => {
-                if(typeof runCompareProcess === 'function') {
-                    runCompareProcess();
-                } else {
-                    console.error("Chưa load được hàm runCompareProcess");
-                }
-            }, 300); // Trễ 0.3s cho mượt
+                if (typeof runCompareProcess === 'function') runCompareProcess();
+            }, 300);
         }
     </script>
 </body>

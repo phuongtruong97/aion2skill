@@ -129,6 +129,18 @@ function changeLanguage() {
     if(currentSkill) {
         loadSkill(currentSkill, document.querySelector('.skill-btn.selected'), false);
     }
+    // Cập nhật tooltip tên skill trên các nút grid
+    document.querySelectorAll('.skill-btn[data-name]').forEach(btn => {
+        // Tìm skill tương ứng qua prefix (id-label)
+        const labelEl = btn.querySelector('.id-label');
+        if (!labelEl) return;
+        const prefix = labelEl.innerText;
+        if (currentClass && skillMap[currentClass]) {
+            const all = [...skillMap[currentClass].active, ...skillMap[currentClass].stigma, ...skillMap[currentClass].passive];
+            const s = all.find(sk => sk.prefix === prefix);
+            if (s) btn.setAttribute('data-name', s['name_' + currentLang] || s.name_en || '');
+        }
+    });
 }
 
 // --- 2. EXCEL PROCESS ---
@@ -293,7 +305,7 @@ function processExcel(rows) {
     changeLanguage();
 }
 
-// Render dải icon chọn class (thay cho dropdown cũ)
+// Render dải icon chọn class — thanh ngang full-width với icon + tên class
 function renderClassBar() {
     const bar = document.getElementById('ui-class-bar');
     bar.innerHTML = '';
@@ -301,16 +313,44 @@ function renderClassBar() {
         const btn = document.createElement('div');
         btn.className = 'class-icon-btn';
         btn.title = cls;
+
+        // Icon image div
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'class-icon-img';
         const iconPath = `./icons/class/${cls.toLowerCase()}.png`;
-        btn.style.backgroundImage = `url('${iconPath}')`;
-        // Fallback: nếu ảnh class chưa được thêm vào (404), hiện chữ viết tắt thay vì ô trống
+        iconDiv.style.backgroundImage = `url('${iconPath}')`;
+
+        // Fallback nếu ảnh lỗi — hiện chữ viết tắt bên trong icon div
         const testImg = new Image();
         testImg.onerror = () => {
-            btn.style.backgroundImage = 'none';
-            btn.innerText = cls.slice(0, 2);
+            iconDiv.style.backgroundImage = 'none';
+            iconDiv.style.display = 'flex';
+            iconDiv.style.alignItems = 'center';
+            iconDiv.style.justifyContent = 'center';
+            iconDiv.style.fontSize = '12px';
+            iconDiv.style.fontWeight = '700';
+            iconDiv.style.color = '#555';
+            iconDiv.innerText = cls.slice(0, 2);
             btn.classList.add('class-icon-fallback');
         };
         testImg.src = iconPath;
+
+        // Label tên class bên dưới icon
+        const label = document.createElement('div');
+        label.className = 'class-icon-label';
+        // Rút gọn tên dài: BLADEDANCER -> BD, GLADIATOR -> GLAD ...
+        const shortNames = {
+            'ASSASSIN':'ASSASSIN','CLERIC':'CLERIC','WARRIOR':'WARRIOR',
+            'MAGE':'MAGE','ARCHER':'ARCHER','WARLORD':'WARLORD',
+            'BLADEDANCER':'B.DANCER','GUNSLINGER':'GUNSLNG',
+            'CHANTER':'CHANTER','TEMPLAR':'TEMPLAR',
+            'GLADIATOR':'GLADIATOR','SORCERER':'SORCERER',
+            'SPIRITMASTER':'SPIRIT','RANGER':'RANGER'
+        };
+        label.innerText = shortNames[cls] || cls.slice(0, 7);
+
+        btn.appendChild(iconDiv);
+        btn.appendChild(label);
         btn.onclick = () => selectClass(cls, btn);
         bar.appendChild(btn);
     });
@@ -334,8 +374,11 @@ function renderSkillList() {
         const d = document.createElement('div'); d.className = 'skill-btn';
         const icon = getIcon(s.className, s.baseId);
         if(icon) d.style.backgroundImage = `url('${icon}')`;
+        // Tên skill cho tooltip hover
+        const skillName = s['name_' + currentLang] || s.name_en || s.name_vi || '';
+        d.setAttribute('data-name', skillName);
         d.innerHTML = `<div class="id-label">${s.prefix}</div>`;
-        d.onclick = () => loadSkill(s, d, true); // true = open overlay
+        d.onclick = () => loadSkill(s, d, true);
         return d;
     };
     
@@ -398,7 +441,12 @@ function loadSkill(skill, btn, shouldOpenOverlay) {
     
     document.getElementById('ui-name').innerText = skill['name_' + currentLang];
     const icon = getIcon(skill.className, skill.baseId);
-    document.getElementById('ui-icon').style.backgroundImage = icon ? `url('${icon}')` : 'none';
+    const iconEl = document.getElementById('ui-icon');
+    iconEl.style.backgroundImage = icon ? `url('${icon}')` : 'none';
+    // Fade-in animation
+    iconEl.classList.remove('skill-anim');
+    void iconEl.offsetWidth; // reflow
+    iconEl.classList.add('skill-anim');
     document.getElementById('ui-spec-tag').innerHTML = parseTags(skill['tag_' + currentLang]);
 
     // RESET LEVEL

@@ -1,415 +1,790 @@
+/* --- CUSTOM FONTS (đặt file vào thư mục /fonts/) --- */
+@font-face {
+    font-family: 'GameHeading';
+    src: url('./fonts/heading.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'GameBody';
+    src: url('./fonts/body.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* --- GOOGLE FONTS (fallback nếu không có file font trên) --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 /* --- CORE THEME --- */
 :root {
-    --bg: #0b0c10; --panel: #15171e; --border: #2b2d35;
-    --text-main: #c5c8d4; --text-yellow: #ffb74d; --accent: #ffb74d;
+    --bg: #0b0c10;
+    --panel: #15171e;
+    --panel2: #1a1c23;
+    --border: #2b2d35;
+    --text-main: #c5c8d4;
+    --text-yellow: #ffb74d;
+    --accent: #ffb74d;
+    --accent-glow: rgba(255, 183, 77, 0.35);
+    --ingame-bg: linear-gradient(180deg, #1e2130 0%, #151720 100%);
+    --ingame-border: #3a3f52;
+    --ingame-header-bg: linear-gradient(90deg, #252838 0%, #1a1d28 100%);
     --rune-bg: #1f2229;
 }
+
 body {
-    /* 1. Thay dòng background màu đơn sắc cũ bằng đoạn này: */
-    background-image: 
-        linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), /* Lớp phủ đen mờ 70% */
-        url('./icons/background.jpg'); /* Đường dẫn ảnh */
-
-    /* 2. Cấu hình để ảnh đẹp trên mọi màn hình */
-    background-size: cover;       /* Co giãn ảnh bao phủ toàn màn hình */
-    background-position: center;  /* Căn giữa ảnh */
-    background-attachment: fixed; /* Cố định ảnh (khi cuộn trang ảnh sẽ đứng yên) */
-    background-repeat: no-repeat; /* Không lặp lại ảnh */
-
-    /* Giữ nguyên các dòng cũ bên dưới */
+    background-image:
+        linear-gradient(rgba(0,0,0,0.72), rgba(0,0,0,0.72)),
+        url('./icons/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
     color: var(--text-main);
-    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    padding: 16px 20px;
     margin: 0;
     min-height: 100vh;
     position: relative;
-    padding-bottom: 50px;
+    padding-bottom: 60px;
 }
-/* --- IO PANEL --- */
-.io-panel { background: var(--panel); padding: 16px 18px; border-radius: 10px; margin-bottom: 22px; display: flex; gap: 15px; width: 95%; max-width: 800px; justify-content: space-between; align-items: center; border: 1px solid var(--border); box-sizing: border-box; box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
-.loading-container { flex-grow: 1; display: flex; align-items: center; gap: 10px; }
-.spinner { width: 20px; height: 20px; border: 3px solid #333; border-top: 3px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-#status { color: #fff; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-.status-ready { color: #4caf50 !important; } 
+
+/* ==============================
+   IO PANEL
+   ============================== */
+.io-panel {
+    background: rgba(21,23,30,0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 10px 18px;
+    border-radius: 10px;
+    margin-bottom: 0;
+    display: flex;
+    gap: 15px;
+    width: 95%;
+    max-width: 900px;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-sizing: border-box;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+/* Nav tabs — không khung vàng, dùng underline style */
+.nav-tabs { display: flex; gap: 4px; align-items: center; }
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #666;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: color 0.18s, border-color 0.18s;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.nav-btn:hover { color: #ccc; }
+.nav-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+/* Icon nhỏ trong nav button */
+.nav-btn-icon {
+    width: 18px;
+    height: 18px;
+    background: center/contain no-repeat;
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+.nav-btn.active .nav-btn-icon { opacity: 1; }
+
+.loading-container {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 10px;
+}
+.spinner {
+    width: 16px; height: 16px;
+    border: 2px solid #333;
+    border-top: 2px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+    flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+#status { color: #aaa; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+.status-ready { color: #5cb85c !important; }
 .status-error { color: #e53935 !important; }
 
-.lang-select { padding: 8px 12px; background: #222; color: #fff; border: 1px solid #555; border-radius: 4px; font-size: 13px; cursor: pointer; outline: none; }
+.lang-select {
+    padding: 6px 10px;
+    background: #1e2029;
+    color: #fff;
+    border: 1px solid #3a3d4a;
+    border-radius: 5px;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s;
+}
 .lang-select:hover { border-color: var(--accent); }
 
-/* --- MAIN LAYOUT --- */
-.main-content { display: flex; gap: 20px; width: 95%; max-width: 800px; justify-content: center; align-items: flex-start; }
+/* Discord link area */
+.discord-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.85;
+    transition: opacity 0.15s;
+}
+.discord-link:hover { opacity: 1; }
+.discord-link img { width: 22px; height: 22px; }
 
-/* === TOOLTIP (SKILL DETAIL) === */
-.tooltip-box { width: 400px; background: linear-gradient(180deg, rgba(24,26,33,0.98), rgba(17,19,24,0.99)); border: 1px solid #3a3f4a; border-radius: 10px; padding: 22px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); flex-shrink: 0; min-height: 500px; position: relative; box-sizing: border-box; }
-
-/* Mobile Close Button */
-.close-overlay-btn {
-    display: none; /* Hidden on Desktop */
-    position: absolute; top: 15px; right: 15px;
-    width: 30px; height: 30px;
-    color: white;
-    border-radius: 50%;
-    text-align: center; line-height: 30px;
-    font-weight: bold; cursor: pointer; z-index: 100;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+/* ==============================
+   CLASS BAR — full-width strip bên dưới io-panel
+   ============================== */
+.class-bar-strip {
+    width: 95%;
+    max-width: 900px;
+    background: rgba(21,23,30,0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    padding: 10px 14px;
+    box-sizing: border-box;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
 
-.header { display: flex; gap: 15px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 15px; padding-right: 30px; }
-.skill-icon { width: 56px; height: 56px; background: #111 center/cover; border: 2px solid #444; border-radius: 8px; flex-shrink: 0; }
-.skill-info { display: flex; flex-direction: column; justify-content: center; }
-.skill-name { font-size: 20px; font-weight: bold; color: #fff; margin: 0; text-shadow: 0 0 5px rgba(255,255,255,0.2); line-height: 1.2; }
-.skill-spec-tag { font-size: 12px; color: var(--text-yellow); font-weight: 600; margin-top: 4px; }
-.skill-meta { display: flex; gap: 15px; margin-top: 5px; font-size: 13px; color: #aaa; align-items: center; }
-.meta-item { display: flex; align-items: center; gap: 5px; }
-.meta-val { color: #fff; font-weight: bold; }
-
-/* Controls */
-.level-control { background: #1e2128; padding: 8px; border-radius: 4px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; border: 1px solid #333; }
-.level-val { font-size: 16px; font-weight: bold; color: var(--accent); min-width: 25px; text-align: right; }
-input[type=range] { flex-grow: 1; accent-color: var(--accent); cursor: pointer; }
-
-/* Description */
-.desc-area { font-size: 14px; line-height: 1.6; color: #ddd; min-height: 80px; margin-bottom: 20px; white-space: pre-wrap; }
-.val { color: #ffb74d; font-weight: bold; }
-.heal { color: #a5d6a7; font-weight: bold; }
-.time { color: #81d4fa; font-weight: bold; }
-.bad { color: #ef5350; }
-.text { color: #a5d6a7; } 
-
-/* Spec Area */
-.spec-container { border-top: 1px solid var(--border); padding-top: 15px; display: none; padding-bottom: 50px; }
-.spec-header { font-size: 13px; font-weight: bold; color: #fff; margin-bottom: 10px; display: flex; justify-content: space-between; }
-.rune-slots { display: flex; gap: 8px; margin-bottom: 15px; justify-content: center; }
-.slot { width: 42px; height: 42px; background: #111; border: 1px solid #444; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; font-size: 18px; transition: 0.2s; }
-.slot.filled { border-color: var(--accent); box-shadow: 0 0 8px rgba(255, 183, 77, 0.15); }
-.slot-remove { position: absolute; top: -5px; right: -5px; width: 14px; height: 14px; background: #e53935; color: #fff; border-radius: 50%; font-size: 9px; display: none; align-items: center; justify-content: center; }
-.slot.filled:hover .slot-remove { display: flex; }
-.rune-img { width: 24px; height: 24px; background-size: contain; background-repeat: no-repeat; background-position: center; }
-.rune-pool { display: flex; flex-direction: column; gap: 6px; }
-.rune-row { display: flex; gap: 10px; background: var(--rune-bg); padding: 8px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; align-items: center; transition: 0.2s; }
-.rune-row:hover { background: #2a2d35; }
-.rune-row.active { border-color: var(--accent); background: #332b20; }
-.rune-text { font-size: 12px; color: #bbb; line-height: 1.3; }
-
-/* === LIST PANEL === */
-.list-panel { width: 380px; background: linear-gradient(180deg, rgba(24,26,33,0.98), rgba(17,19,24,0.99)); border: 1px solid var(--border); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; height: 750px; box-sizing: border-box; box-shadow: 0 16px 40px rgba(0,0,0,0.5); }
-.class-select { width: 100%; padding: 10px; background: #222; border: 1px solid #555; color: #fff; border-radius: 4px; outline: none; margin-bottom: 10px; }
-
-/* === CLASS ICON BAR (thay cho dropdown) === */
 .class-icon-bar {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #333;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 8px;
 }
+
 .class-icon-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    padding: 6px 4px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    background: transparent;
     position: relative;
+}
+.class-icon-btn:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: #555;
+    transform: translateY(-1px);
+}
+.class-icon-btn.active {
+    background: rgba(255, 183, 77, 0.08);
+    border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(255, 183, 77, 0.2);
+}
+
+/* Ảnh icon class */
+.class-icon-img {
     width: 100%;
     aspect-ratio: 1;
     background: #1a1c22 center/cover no-repeat;
-    border: 1px solid #444;
-    border-radius: 6px;
+    border-radius: 5px;
+    border: 1px solid #333;
+    transition: border-color 0.15s;
+}
+.class-icon-btn.active .class-icon-img { border-color: var(--accent); }
+.class-icon-btn:hover .class-icon-img { border-color: #777; }
+
+/* Tên class bên dưới icon */
+.class-icon-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    text-align: center;
+    line-height: 1;
+    transition: color 0.15s;
+    white-space: nowrap;
     overflow: hidden;
-    cursor: pointer;
-    transition: border-color 0.15s ease, transform 0.1s ease;
+    text-overflow: ellipsis;
+    width: 100%;
 }
-.class-icon-btn:hover { border-color: #999; transform: translateY(-1px); }
-.class-icon-btn.active {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(255, 183, 77, 0.25), 0 0 10px rgba(255, 183, 77, 0.4);
-}
-.class-icon-btn.class-icon-fallback {
+.class-icon-btn:hover .class-icon-label { color: #aaa; }
+.class-icon-btn.active .class-icon-label { color: var(--accent); }
+
+/* Fallback khi không có ảnh */
+.class-icon-fallback .class-icon-img {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
-    font-weight: bold;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+    background: #1a1c22;
 }
-/* Nhãn tên class hiện khi hover, không chiếm chỗ layout */
-.class-icon-btn::after {
-    content: attr(title);
+
+/* ==============================
+   MAIN LAYOUT
+   ============================== */
+.main-content {
+    display: flex;
+    gap: 18px;
+    width: 95%;
+    max-width: 900px;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+/* ==============================
+   TOOLTIP / SKILL DETAIL PANEL
+   ============================== */
+.tooltip-box {
+    width: 390px;
+    background: linear-gradient(180deg, rgba(22,24,32,0.7), rgba(14,16,22,0.65));
+    border: 1px solid #3a3f4e;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+    flex-shrink: 0;
+    min-height: 500px;
+    position: relative;
+    box-sizing: border-box;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Mobile Close Button */
+.close-overlay-btn {
+    display: none;
+    position: absolute; top: 14px; right: 14px;
+    width: 36px; height: 36px;
+    color: #aaa;
+    border-radius: 50%;
+    text-align: center; line-height: 36px;
+    font-weight: bold; cursor: pointer; z-index: 100;
+    font-size: 18px;
+    background: rgba(255,255,255,0.06);
+}
+.close-overlay-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+/* Skill header */
+.header {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding-bottom: 14px;
+    padding-right: 10px;
+}
+
+/* Skill icon — lớn hơn, có glow khi selected */
+.skill-icon {
+    width: 72px;
+    height: 72px;
+    background: #0e0f15 center/cover;
+    border: 2px solid #444;
+    border-radius: 8px;
+    flex-shrink: 0;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+.skill-icon::after {
+    content: '';
     position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(4px);
+    inset: -1px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(255,183,77,0.15), transparent 60%);
+    pointer-events: none;
+}
+
+/* Fade-in animation khi skill thay đổi */
+@keyframes skillFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.skill-anim { animation: skillFadeIn 0.18s ease-out; }
+
+.skill-info { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.skill-name {
+    font-size: 24 px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -0.2px;
+    font-family: 'GameHeading', 'Inter', 'Segoe UI', sans-serif;
+}
+.skill-spec-tag { font-size: 11px; color: var(--text-yellow); font-weight: 600; }
+
+/* MP / CD — không emoji */
+.skill-meta { display: flex; gap: 14px; font-size: 12px; color: #888; align-items: center; margin-top: 2px; }
+.meta-item { display: flex; align-items: center; gap: 5px; }
+.meta-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #555; font-weight: 600; }
+.meta-val { color: #e0e0e0; font-weight: 700; font-size: 13px; }
+
+/* Level Slider */
+.level-control {
+    background: rgba(255,255,255,0.03);
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(255,255,255,0.07);
+}
+.lv-label { font-size: 10px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.5px; min-width: 14px; text-align: center; }
+.level-val { font-size: 15px; font-weight: 700; color: var(--accent); min-width: 24px; text-align: right; }
+input[type=range] { flex-grow: 1; accent-color: var(--accent); cursor: pointer; height: 4px; }
+
+/* Description */
+.desc-area {
+    font-size: 15 px;
+    line-height: 1.65;
+    color: #ccc;
+    min-height: 80px;
+    margin-bottom: 18px;
+    white-space: pre-wrap;
+    font-family: 'GameBody', 'Inter', 'Segoe UI', sans-serif;
+}
+.val   { color: #ffb74d; font-weight: 700; }
+.heal  { color: #81c784; font-weight: 700; }
+.time  { color: #80d8ff; font-weight: 700; }
+.bad   { color: #ef5350; }
+.text  { color: #81c784; }
+
+/* Spec / Rune area */
+.spec-container { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 14px; display: none; padding-bottom: 50px; }
+.spec-header { font-size: 11px; font-weight: 700; color: #777; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.rune-slots { display: flex; gap: 8px; margin-bottom: 14px; justify-content: center; }
+.slot {
+    width: 44px; height: 44px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid #383c48;
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; transition: 0.2s;
+}
+.slot.filled { border-color: var(--accent); box-shadow: 0 0 10px rgba(255,183,77,0.18); }
+.slot-remove {
+    position: absolute; top: -5px; right: -5px;
+    width: 14px; height: 14px;
+    background: #c62828; color: #fff;
+    border-radius: 50%; font-size: 9px;
+    display: none; align-items: center; justify-content: center;
+}
+.slot.filled:hover .slot-remove { display: flex; }
+.rune-img { width: 26px; height: 26px; min-width: 26px; min-height: 26px; background-size: contain; background-repeat: no-repeat; background-position: center; flex-shrink: 0; margin-top: 1px; }
+.rune-pool { display: flex; flex-direction: column; gap: 5px; }
+.rune-row {
+    display: flex; gap: 10px;
+    background: var(--rune-bg);
+    padding: 9px 10px;
+    border-radius: 5px; cursor: pointer;
+    border: 1px solid transparent;
+    align-items: flex-start; transition: 0.18s;
+}
+.rune-row:hover { background: #262933; }
+.rune-row.active { border-color: var(--accent); background: #2e2518; }
+.rune-text { font-size: 15px; color: #b0b4bf; line-height: 1.4; font-family: 'GameBody', 'Inter', 'Segoe UI', sans-serif; }
+
+/* ==============================
+   LIST PANEL — ingame style
+   ============================== */
+.list-panel {
+    flex: 1;
+    min-width: 0;
+    background: linear-gradient(180deg, rgba(30,34,51,0.6) 0%, rgba(23,26,39,0.55) 40%, rgba(19,21,31,0.5) 100%);
+    border: 1px solid #3d4460;
+    border-top-color: #5a6080;
+    border-radius: 10px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 680px;
+    box-sizing: border-box;
+    box-shadow: 
+        0 12px 36px rgba(0,0,0,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        inset 0 -1px 0 rgba(0,0,0,0.2);
+    overflow: hidden;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+/* Scrollable area */
+.scroll-area {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 12px 14px 14px;
+}
+
+/* Category headers — ingame style */
+.category-header {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 14px 0 8px 0;
+    padding: 7px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #e8eaf0;
+    /* Nền riêng tối hơn panel, viền kim loại mờ */
+    background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.02) 100%);
+    border-top: 1px solid rgba(200,210,255,0.12);
+    border-bottom: 1px solid rgba(200,210,255,0.12);
+    border-left: none;
+    border-right: none;
+    /* Mở rộng ra ngoài padding của scroll-area */
+    margin-left: -14px;
+    margin-right: -14px;
+    padding-left: 14px;
+    padding-right: 14px;
+}
+.category-header::before { display: none; }
+
+#cat-active, #cat-stigma, #cat-passive { /* dùng chung style trên */ }
+
+/* Skill grid */
+.skill-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
     margin-bottom: 6px;
-    background: #000;
+}
+
+/* Skill button — ingame icon style */
+.skill-btn {
+    aspect-ratio: 1;
+    background: #111318 center/cover;
+    border: 1px solid #2e3240;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.12s, transform 0.1s, box-shadow 0.12s;
+    overflow: hidden;
+}
+.skill-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%);
+    pointer-events: none;
+}
+.skill-btn:hover {
+    border-color: #7a8099;
+    transform: scale(1.07);
+    z-index: 2;
+    box-shadow: 0 0 10px rgba(0,0,0,0.6);
+}
+.skill-btn.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 12px var(--accent-glow);
+    z-index: 2;
+}
+
+/* Tooltip tên khi hover */
+.skill-btn[data-name]:hover::before {
+    content: attr(data-name);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.92);
     color: #fff;
     font-size: 10px;
     font-weight: 600;
     white-space: nowrap;
-    padding: 3px 7px;
+    padding: 3px 8px;
     border-radius: 3px;
-    opacity: 0;
     pointer-events: none;
-    transition: opacity 0.12s ease, transform 0.12s ease;
-    z-index: 10;
+    z-index: 20;
+    border: 1px solid #444;
 }
-.class-icon-btn:hover::after { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-.scroll-area { flex-grow: 1; overflow-y: auto; padding-right: 5px; }
-.category-header { font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; margin: 15px 0 8px 0; border-bottom: 1px solid #333; padding-bottom: 4px; }
-.skill-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
-.skill-btn { aspect-ratio: 1; background: #222 center/cover; border: 1px solid #444; border-radius: 4px; cursor: pointer; position: relative; transition: 0.1s; }
-.skill-btn:hover { border-color: #aaa; transform: scale(1.05); z-index: 2; }
-.skill-btn.selected { border-color: var(--accent); box-shadow: 0 0 8px var(--accent); z-index: 2; }
-.id-label { position: absolute; bottom: 0; right: 0; background: rgba(0,0,0,0.8); font-size: 8px; color: #fff; padding: 1px 3px; pointer-events: none; }
+.id-label {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.75);
+    font-size: 8px; color: #888;
+    padding: 1px 3px;
+    text-align: center;
+    pointer-events: none;
+    font-family: monospace;
+}
 
-.footer { margin-top: 30px; font-size: 12px; color: #666; text-align: center; width: 100%; border-top: 1px solid #222; padding-top: 10px; font-style: italic; }
+/* ==============================
+   FOOTER
+   ============================== */
+.footer {
+    margin-top: 28px;
+    font-size: 11px;
+    color: #444;
+    text-align: center;
+    width: 100%;
+    border-top: 1px solid #1a1c22;
+    padding-top: 10px;
+    font-style: italic;
+    letter-spacing: 0.5px;
+}
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #111; }
-::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2e3240; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
 
-/* ========================================= */
-/* === MOBILE RESPONSIVE (MAX 1080px) === */
-/* ========================================= */
+/* ==============================
+   MOBILE RESPONSIVE
+   ============================== */
 @media screen and (max-width: 1080px) {
-    body { padding: 10px; padding-bottom: 80px; }
-    .io-panel { width: 100%; flex-wrap: wrap; }
+    body { padding: 8px; padding-bottom: 80px; }
+
+    .io-panel { width: 100%; flex-wrap: wrap; padding: 10px 12px; margin-bottom: 0; border-radius: 10px 10px 0 0; }
+    .class-bar-strip { width: 100%; border-radius: 0 0 8px 8px; padding: 8px 10px; }
+
+    .class-icon-bar { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .class-icon-label { font-size: 8px; }
+
     .main-content { flex-direction: column; width: 100%; gap: 0; }
 
-    /* 1. Skill List (Default View) */
-    .list-panel { 
-        width: 100%; 
-        height: auto; 
-        min-height: 80vh; 
-        border: none; 
-        background: transparent; 
-        padding: 0; 
+    .list-panel {
+        width: 100%;
+        height: auto;
+        min-height: 75vh;
+        border-radius: 8px;
+        margin-top: 14px;
     }
-    .skill-grid { grid-template-columns: repeat(6, 1fr); gap: 8px; }
-    .skill-btn { border-width: 1px; }
 
-    /* 2. Tooltip / Overlay (Hidden by default) */
+    .skill-grid { grid-template-columns: repeat(6, 1fr); gap: 6px; }
+
     .tooltip-box {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
         z-index: 9999;
         border-radius: 0;
         border: none;
-        background: #111216; /* Dark BG like Image 2 */
+        background: #0e1016;
         overflow-y: auto;
-        display: none; /* Hide initially */
-        padding: 20px;
-        padding-top: 50px; /* Space for close button */
-        animation: slideUp 0.3s ease-out;
+        display: none;
+        padding: 16px;
+        padding-top: 54px;
+        animation: slideUp 0.25s ease-out;
     }
+    .tooltip-box.mobile-active { display: block; }
+    .close-overlay-btn { display: flex; align-items: center; justify-content: center; }
 
-    .tooltip-box.mobile-active {
-        display: block;
-    }
-
-    .close-overlay-btn {
-        display: block; /* Show X button */
-    }
-
-    /* Adjust internal layout for mobile */
-    .level-control { padding: 15px; margin-top: 10px; }
-    .rune-row { padding: 12px; } /* Bigger touch target */
-    .skill-name { font-size: 24px; }
-    
-    /* Footer padding for scroll */
+    .skill-icon { width: 64px; height: 64px; }
+    .skill-name { font-size: 20px; }
+    .rune-row { padding: 11px 10px; }
     .spec-container { padding-bottom: 100px; }
 }
 
-@keyframes slideUp {
-    from { transform: translateY(100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+@media screen and (max-width: 480px) {
+    .class-icon-bar { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+    .class-icon-label { display: none; }
 }
 
-/* --- NAVIGATION TABS --- */
-.nav-tabs { display: flex; gap: 6px; }
-.nav-btn { 
-    background: #1e2128; 
-    border: 1px solid #444; 
-    color: #888; 
-    padding: 10px 22px; 
-    cursor: pointer; 
-    border-radius: 6px; 
-    font-weight: bold; 
-    transition: 0.2s; 
-    text-transform: uppercase;
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+}
+
+/* ==============================
+   COMPARE / PATCH NOTE VIEW
+   ============================== */
+#view-compare { width: 95%; max-width: 1400px; margin-top: 20px; }
+
+.compare-controls {
+    margin-bottom: 18px;
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    background: #15171e;
+    padding: 14px 20px;
+    border-radius: 8px;
+    border: 1px solid #2a2d38;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.compare-controls label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+.c-select {
+    padding: 7px 10px;
+    background: #1e2029;
+    color: #fff;
+    border: 1px solid #3a3d4a;
+    border-radius: 5px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    width: 180px;
+}
+.reload-btn {
+    background: var(--accent);
+    color: #111;
+    border: none;
+    padding: 8px 22px;
+    border-radius: 5px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
     font-size: 12px;
     letter-spacing: 0.5px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: opacity 0.15s;
+    align-self: flex-end;
 }
-.nav-btn:hover { background: #2b2d35; color: #fff; }
-.nav-btn.active { 
-    background: var(--accent); 
-    color: #111; 
-    border-color: var(--accent); 
-    box-shadow: 0 2px 12px rgba(255, 183, 77, 0.35);
-}
+.reload-btn:hover { opacity: 0.85; }
 
-
-/* --- GROUPED COMPARE RESULTS --- */
-.class-group { margin-bottom: 20px; background: #15171e; border: 1px solid #333; border-radius: 6px; padding: 10px; }
-.class-group-header { 
-    font-size: 14px; font-weight: bold; color: var(--accent); 
-    border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 10px; text-align: left; text-transform: uppercase;
+/* Grouped results */
+.class-group { margin-bottom: 18px; background: #15171e; border: 1px solid #2a2d38; border-radius: 7px; padding: 12px; }
+.class-group-header {
+    font-size: 12px; font-weight: 700; color: var(--accent);
+    border-bottom: 1px solid #2a2d38; padding-bottom: 6px; margin-bottom: 10px;
+    text-transform: uppercase; letter-spacing: 1px;
 }
 .diff-badge {
-    position: absolute; top: -5px; right: -5px; 
-    background: #e53935; color: #fff; font-size: 9px; font-weight: bold;
-    padding: 2px 4px; border-radius: 4px; z-index: 5;
+    position: absolute; top: -4px; right: -4px;
+    background: #c62828; color: #fff; font-size: 8px; font-weight: 700;
+    padding: 2px 4px; border-radius: 3px; z-index: 5;
+    letter-spacing: 0.3px;
 }
-.diff-badge.new { background: #4caf50; }
+.diff-badge.new { background: #388e3c; }
 
-/* --- MODAL STYLES --- */
+/* Compare results grid */
+#diff-grouped-list .skill-grid {
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)) !important;
+    gap: 5px !important;
+}
+#diff-grouped-list .skill-btn { width: 40px; height: 40px; }
+
+/* Progress bar */
+#compare-progress-container {
+    margin-bottom: 18px;
+    background: #111316;
+    padding: 14px;
+    border-radius: 6px;
+    border: 1px solid #2a2d38;
+}
+
+/* ==============================
+   COMPARE MODAL
+   ============================== */
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85); z-index: 10000;
+    background: rgba(0,0,0,0.88);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
     display: flex; align-items: center; justify-content: center;
 }
 .modal-content {
     width: 90%; max-width: 1000px; height: 85vh;
-    background: #111; border: 1px solid #444; border-radius: 8px;
-    padding: 20px; position: relative; display: flex; flex-direction: column;
-}
-.modal-close {
-    position: absolute; top: 15px; right: 20px;
-    font-size: 24px; color: #888; cursor: pointer;
-}
-.modal-close:hover { color: #fff; }
-.modal-header-row { display: flex; gap: 15px; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #333; }
-/* --- COMPARE LIST COMPACT ICONS --- */
-#diff-grouped-list .skill-grid {
-    grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)) !important; /* Icon nhỏ gọn */
-    gap: 5px !important;
-}
-#diff-grouped-list .skill-btn {
-    width: 42px; height: 42px; /* Kích thước cố định */
-}
-#diff-grouped-list .id-label {
-    font-size: 8px; bottom: 0; right: 0; padding: 0 2px;
-}
-#diff-grouped-list .diff-badge {
-    font-size: 8px; padding: 1px 3px; top: -3px; right: -3px;
-}
-
-/* --- SKILL CARD IN COMPARE MODAL --- */
-/* Giao diện thẻ bài giống hệt bên Tra Cứu nhưng nằm trong Modal */
-.compare-skill-card {
-    background: rgba(20, 22, 28, 0.5);
-    border: 1px solid #3a3f4a;
-    border-radius: 4px;
-    padding: 15px;
-    height: 100%; /* Full chiều cao cột */
-    box-sizing: border-box;
+    background: #0e1016;
+    border: 1px solid #3a3f4e;
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+}
+.modal-close {
+    position: absolute; top: 14px; right: 16px;
+    width: 32px; height: 32px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+    font-size: 18px; color: #666; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s, background 0.15s;
+}
+.modal-close:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+.modal-header-row {
+    display: flex; gap: 14px; align-items: center;
+    margin-bottom: 16px; padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
 }
 
-.c-header { display: flex; gap: 10px; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 10px; }
-.c-icon { width: 48px; height: 48px; border: 2px solid #444; border-radius: 6px; background: #000 center/cover; flex-shrink: 0; }
-.c-info { display: flex; flex-direction: column; justify-content: center; }
-.c-name { font-size: 16px; font-weight: bold; color: #fff; margin: 0; line-height: 1.2; }
-.c-meta { display: flex; gap: 10px; font-size: 12px; color: #aaa; margin-top: 4px; }
-.c-val { color: #fff; font-weight: bold; }
-
-/* Level Slider giả lập (chỉ để hiển thị) */
-.c-slider-area { 
-    background: #1e2128; padding: 5px 10px; border-radius: 4px; margin-bottom: 10px; 
-    display: flex; align-items: center; gap: 10px; border: 1px solid #333;
-}
-.c-slider-bar { flex-grow: 1; height: 4px; background: #444; border-radius: 2px; position: relative; }
-.c-slider-knob { 
-    width: 10px; height: 10px; background: var(--accent); border-radius: 50%; 
-    position: absolute; left: 0; top: -3px; 
-}
-
-.c-desc { 
-    font-size: 13px; line-height: 1.5; color: #ddd; white-space: pre-wrap; flex-grow: 1; 
-}
-
-/* --- FIXED: COMPARE MODAL SIDE-BY-SIDE (SONG SONG) --- */
 #compare-modal .compare-layout {
     display: flex !important;
-    flex-direction: row !important; /* Xếp hàng ngang */
-    flex-wrap: nowrap !important;   /* Không cho rớt dòng */
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     align-items: stretch;
-    gap: 20px;
-    height: calc(100% - 60px);
-    overflow: hidden; 
+    gap: 16px;
+    height: calc(100% - 70px);
+    overflow: hidden;
 }
-
 #compare-modal .compare-col {
-    flex: 1; 
-    width: 50% !important; /* Bắt buộc chiếm 50% */
-    min-width: 300px;      /* Đảm bảo không bị bóp méo */
-    background: transparent; /* Nền trong suốt để thấy card bên trong */
+    flex: 1;
+    width: 50% !important;
+    min-width: 280px;
+    background: transparent;
     border: none;
     display: flex;
     flex-direction: column;
     padding: 0;
 }
-
-/* Header cột (Patch Cũ / Mới) */
 #compare-modal .compare-header {
     text-align: center;
-    font-weight: bold;
-    color: #aaa;
-    font-style: italic;
-    margin-bottom: 10px;
+    font-weight: 700;
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
     flex-shrink: 0;
 }
-
-/* Thẻ bài mô phỏng y hệt bên Tra Cứu */
 .compare-skill-container {
-    background: rgba(20, 22, 28, 0.95);
-    border: 1px solid #3a3f4a;
-    border-radius: 4px;
-    padding: 15px;
+    background: linear-gradient(180deg, #1e2233 0%, #171a27 40%, #13151f 100%);
+    border: 1px solid #3d4460;
+    border-top-color: #5a6080;
+    border-radius: 6px;
+    padding: 14px;
     height: 100%;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    overflow-y: auto; /* Nội dung dài thì cuộn trong thẻ */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    overflow-y: auto;
 }
-
-/* Ẩn mũi tên giữa */
 #compare-modal .compare-mid { display: none; }
 
-/* --- MOBILE RESPONSIVE: CHỈ HIỆN BẢN MỚI --- */
 @media (max-width: 768px) {
-    /* 1. Ẩn cột bên trái (Bản cũ - Patch Old) */
-    /* Lưu ý: first-child ở đây là cột A */
-    #compare-modal .compare-layout > .compare-col:nth-child(1) {
-        display: none !important;
-    }
-
-    /* 2. Ẩn mũi tên ở giữa */
-    #compare-modal .compare-layout > .compare-mid {
-        display: none !important;
-    }
-
-    /* 3. Phóng to cột bên phải (Bản mới - Patch New) lên 100% */
+    #compare-modal .compare-layout > .compare-col:nth-child(1) { display: none !important; }
+    #compare-modal .compare-layout > .compare-mid { display: none !important; }
     #compare-modal .compare-layout > .compare-col:nth-child(3) {
         width: 100% !important;
         flex: 1 1 100% !important;
         min-width: 100% !important;
-        max-width: 100% !important;
-        padding: 5px !important; /* Thêm chút padding cho dễ nhìn trên đt */
     }
-
-    /* 4. Tùy chỉnh lại Modal cho gọn trên mobile */
-    #compare-modal .modal-content {
-        width: 95% !important;
-        height: 90vh !important;
-        padding: 10px !important;
-    }
-
-    #compare-modal .compare-layout {
-        gap: 0 !important;
-    }
+    #compare-modal .modal-content { width: 96% !important; height: 90vh !important; padding: 12px !important; }
+    #compare-modal .compare-layout { gap: 0 !important; }
 }
