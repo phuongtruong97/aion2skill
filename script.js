@@ -4,6 +4,7 @@ let dbDmgLv={}, dbAbnLv={};
 let dbSkillLv={}; // THÊM BIẾN NÀY ĐỂ CHỨA DATA CẤP ĐỘ MP/CD
 let skillMap={}, iconMap={};
 let currentSkill=null, selectedRunes=[], currentLevel=1;
+let currentClass=null;
 let currentLang = 'en'; 
 const CLASS_CODE = {"ASSASSIN":"as","CLERIC":"cl","WARRIOR":"wa","MAGE":"ma","ARCHER":"ar","WARLORD":"wl","BLADEDANCER":"bd","GUNSLINGER":"gs","CHANTER":"ch","TEMPLAR":"te","GLADIATOR":"gl","SORCERER":"so","SPIRITMASTER":"sm","RANGER":"ra"};
 
@@ -288,19 +289,46 @@ function processExcel(rows) {
             }
         }
     }
-    const sel = document.getElementById('ui-class');
-    sel.innerHTML = '<option>-- Select Class --</option>';
-    Object.keys(skillMap).sort().forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`);
-    
+    renderClassBar();
     changeLanguage();
+}
+
+// Render dải icon chọn class (thay cho dropdown cũ)
+function renderClassBar() {
+    const bar = document.getElementById('ui-class-bar');
+    bar.innerHTML = '';
+    Object.keys(skillMap).sort().forEach(cls => {
+        const btn = document.createElement('div');
+        btn.className = 'class-icon-btn';
+        btn.title = cls;
+        const iconPath = `./icons/class/${cls.toLowerCase()}.png`;
+        btn.style.backgroundImage = `url('${iconPath}')`;
+        // Fallback: nếu ảnh class chưa được thêm vào (404), hiện chữ viết tắt thay vì ô trống
+        const testImg = new Image();
+        testImg.onerror = () => {
+            btn.style.backgroundImage = 'none';
+            btn.innerText = cls.slice(0, 2);
+            btn.classList.add('class-icon-fallback');
+        };
+        testImg.src = iconPath;
+        btn.onclick = () => selectClass(cls, btn);
+        bar.appendChild(btn);
+    });
+}
+
+function selectClass(cls, btnEl) {
+    currentClass = cls;
+    document.querySelectorAll('.class-icon-btn').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+    renderSkillList();
 }
 
 // --- 3. UI RENDER ---
 function renderSkillList() {
-    const cls = document.getElementById('ui-class').value;
+    const cls = currentClass;
     const gActive = document.getElementById('grid-active'), gStigma = document.getElementById('grid-stigma'), gPassive = document.getElementById('grid-passive');
     gActive.innerHTML = ""; gStigma.innerHTML = ""; gPassive.innerHTML = "";
-    if(!skillMap[cls]) return;
+    if(!cls || !skillMap[cls]) return;
     
     const makeBtn = (s) => {
         const d = document.createElement('div'); d.className = 'skill-btn';

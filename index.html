@@ -7,6 +7,8 @@
     
     <link rel="icon" type="image/png" href="icons/logo.png">
     
+    <!-- xlsx.full.min.js (v0.18.5, lấy từ npm registry) đã có sẵn trong repo.
+         Dòng fallback dưới chỉ chạy nếu file local lỡ bị thiếu khi deploy. -->
     <script src="xlsx.full.min.js"></script>
     <script>if (!window.XLSX) document.write('<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"><\/script>');</script>
 
@@ -79,7 +81,7 @@
         </div>
 
         <div class="list-panel">
-            <select id="ui-class" class="class-select" onchange="renderSkillList()"><option>-- Select Class --</option></select>
+            <div class="class-icon-bar" id="ui-class-bar"></div>
             <div class="scroll-area">
                 <div class="category-header" id="cat-active">Active</div>
                 <div class="skill-grid" id="grid-active"></div>
