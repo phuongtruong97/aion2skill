@@ -50,8 +50,7 @@ window.onload = async () => {
 
 async function loadAllData(folderName) {
     // Đường dẫn trỏ vào folder con (VD: ./data/2025_12_31/Skill.json)
-    // Dùng data_min (bản đã lọc field, nhẹ hơn ~86%) thay cho data gốc của game
-    const basePath = `./data_min/${folderName}`; 
+    const basePath = `./data/${folderName}`; 
 
     const jsonFiles = [
         { name: 'Skill.json', db: iconDb, isSkill: true },

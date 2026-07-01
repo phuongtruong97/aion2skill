@@ -78,8 +78,7 @@ async function runCompareProcess() {
 // --- 2. LOAD DATA (NO CACHE) ---
 async function loadAndProcessData(folderName) {
     const db = { iconDb: {}, dbDmg: {}, dbAbn: {}, dbSkillLv: {}, dbDmgLv: {}, dbAbnLv: {}, dbFilter: {}, skillMap: {} };
-    // Dùng data_min (bản đã lọc field, nhẹ hơn ~86%) thay cho data gốc của game
-    const path = `./data_min/${folderName}`;
+    const path = `./data/${folderName}`;
     const ts = Date.now(); 
 
     const files = [
