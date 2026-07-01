@@ -437,6 +437,11 @@ function selectClass(cls, btnEl) {
     document.querySelectorAll('.class-icon-btn').forEach(b => b.classList.remove('active'));
     if (btnEl) btnEl.classList.add('active');
     renderSkillList();
+
+    // Nếu đang xem tab So Sánh và đã có dữ liệu diff, lọc lại theo class mới chọn
+    if (typeof renderResults === 'function' && typeof g_changes !== 'undefined' && g_changes.length > 0) {
+        renderResults();
+    }
 }
 
 // --- 3. UI RENDER ---
@@ -587,10 +592,12 @@ function updateLevel(val) {
 
         if(currentSkill.type === 'stigma') {
             selectedRunes = [];
-            if(currentLevel >= 5) selectedRunes.push(1);
-            if(currentLevel >= 10) selectedRunes.push(2);
-            if(currentLevel >= 15) selectedRunes.push(3);
-            if(currentLevel >= 20) selectedRunes.push(4);
+            // Tự động theo số rune thực tế của skill (ko hard-code số lượng)
+            // Mỗi 5 cấp mở 1 rune: Lv5->rune1, Lv10->rune2, Lv15->rune3, Lv20->rune4, Lv25->rune5, ...
+            const runeCount = Object.keys(currentSkill.runes).length;
+            for(let i = 1; i <= runeCount; i++) {
+                if(currentLevel >= i * 5) selectedRunes.push(i);
+            }
         }
         updateUI();
     }

@@ -723,7 +723,7 @@ input[type=range] { flex-grow: 1; accent-color: var(--accent); cursor: pointer; 
 /* ==============================
    COMPARE / PATCH NOTE VIEW
    ============================== */
-#view-compare { width: 95%; max-width: 1400px; margin-top: 20px; }
+#view-compare { width: 95%; max-width: 900px; margin-top: 20px; }
 
 .compare-controls {
     margin-bottom: 18px;
@@ -772,20 +772,32 @@ input[type=range] { flex-grow: 1; accent-color: var(--accent); cursor: pointer; 
     border-bottom: 1px solid #2a2d38; padding-bottom: 6px; margin-bottom: 10px;
     text-transform: uppercase; letter-spacing: 1px;
 }
-.diff-badge {
-    position: absolute; top: -4px; right: -4px;
-    background: #c62828; color: #fff; font-size: 8px; font-weight: 700;
-    padding: 2px 4px; border-radius: 3px; z-index: 5;
-    letter-spacing: 0.3px;
+.diff-dot {
+    position: absolute;
+    top: 3px; right: 3px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #ff9800; /* MOD = cam */
+    box-shadow: 0 0 4px rgba(255,152,0,0.75);
+    z-index: 6;
+    pointer-events: none;
 }
-.diff-badge.new { background: #388e3c; }
+.diff-dot.new {
+    background: #4caf50; /* NEW = xanh lá */
+    box-shadow: 0 0 4px rgba(76,175,80,0.75);
+}
 
-/* Compare results grid */
+/* Compare results grid — icon nhỏ đúng kích cỡ như bên trang Skill (~64px), tự wrap theo chiều rộng khung */
 #diff-grouped-list .skill-grid {
-    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)) !important;
-    gap: 5px !important;
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 5px;
 }
-#diff-grouped-list .skill-btn { width: 40px; height: 40px; }
+#diff-grouped-list .skill-btn {
+    width: 64px;
+    height: 64px;
+    flex: 0 0 auto;
+}
 
 /* Progress bar */
 #compare-progress-container {
@@ -862,6 +874,13 @@ input[type=range] { flex-grow: 1; accent-color: var(--accent); cursor: pointer; 
     letter-spacing: 1px;
     margin-bottom: 8px;
     flex-shrink: 0;
+}
+#compare-modal .compare-body {
+    flex: 1 1 auto;
+    min-height: 0; /* Bắt buộc để overflow-y bên trong hoạt động trong flexbox lồng nhau */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 .compare-skill-container {
     background: linear-gradient(180deg, #1e2233 0%, #171a27 40%, #13151f 100%);

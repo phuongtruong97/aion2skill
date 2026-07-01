@@ -281,33 +281,42 @@ function renderResults() {
         return;
     }
 
-    const grouped = {};
-    g_changes.forEach(c => { if(!grouped[c.cls]) grouped[c.cls]=[]; grouped[c.cls].push(c); });
+    // Lọc theo class đang chọn ở thanh class-bar (dùng chung với trang Skill)
+    if (!currentClass) {
+        container.innerHTML = "<div style='padding:40px 20px; text-align:center; color:#666;'>Chọn 1 class ở thanh phía trên để xem thay đổi.</div>";
+        return;
+    }
 
-    Object.keys(grouped).sort().forEach(cls => {
-        const div = document.createElement('div');
-        div.className = 'class-group';
-        div.innerHTML = `<div class="class-group-header">${cls} (${grouped[cls].length})</div>`;
-        const grid = document.createElement('div');
-        grid.className = 'skill-grid';
-        grouped[cls].forEach(item => {
-            const btn = document.createElement('div');
-            btn.className = 'skill-btn';
-            const iconUrl = getIcon_C(item.baseId, DATA_B) || getIcon_C(item.baseId, DATA_A);
-            if(iconUrl) btn.style.backgroundImage = `url('${iconUrl}')`;
-            btn.innerHTML = `<div class="diff-badge ${item.type==='new'?'new':''}">${item.type==='new'?'NEW':'MOD'}</div>
-                             <div class="id-label">${item.prefix}</div>`;
-            btn.onclick = () => openCompareModal(item);
-            grid.appendChild(btn);
-        });
-        div.appendChild(grid);
-        container.appendChild(div);
+    const list = g_changes.filter(c => c.cls === currentClass);
+    if (list.length === 0) {
+        container.innerHTML = `<div style='padding:40px 20px; text-align:center; color:#666;'>Không có thay đổi nào cho class ${currentClass}.</div>`;
+        return;
+    }
+
+    const div = document.createElement('div');
+    div.className = 'class-group';
+    div.innerHTML = `<div class="class-group-header">${currentClass} (${list.length})</div>`;
+    const grid = document.createElement('div');
+    grid.className = 'skill-grid';
+    list.forEach(item => {
+        const btn = document.createElement('div');
+        btn.className = 'skill-btn';
+        btn.title = item.name || item.prefix;
+        const iconUrl = getIcon_C(item.baseId, DATA_B) || getIcon_C(item.baseId, DATA_A);
+        if(iconUrl) btn.style.backgroundImage = `url('${iconUrl}')`;
+        btn.innerHTML = `<div class="diff-dot ${item.type==='new'?'new':''}"></div>
+                         <div class="id-label">${item.prefix}</div>`;
+        btn.onclick = () => openCompareModal(item);
+        grid.appendChild(btn);
     });
+    div.appendChild(grid);
+    container.appendChild(div);
 }
 
 function openCompareModal(item) {
     const modal = document.getElementById('compare-modal');
     modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Khoá cuộn trang nền khi modal mở
     
     const titleEl = document.getElementById('modal-skill-name');
     if(titleEl) titleEl.innerText = item.name;
@@ -343,7 +352,10 @@ function openCompareModal(item) {
     }
 }
 
-function closeCompareModal() { document.getElementById('compare-modal').style.display = 'none'; }
+function closeCompareModal() {
+    document.getElementById('compare-modal').style.display = 'none';
+    document.body.style.overflow = '';
+}
 
 // --- 5. CLASS SKILL SIMULATOR (LOGIC 4 RUNES = STIGMA) ---
 class SkillSimulator {
@@ -356,9 +368,7 @@ class SkillSimulator {
         this.selectedRunes = []; 
         this.lang = document.getElementById('ui-lang') ? document.getElementById('ui-lang').value : 'vi';
 
-        // --- PHÂN LOẠI SKILL DỰA TRÊN SỐ LƯỢNG RUNE ---
-        const runeCount = Object.keys(this.skill.runes).length;
-        
+        // --- PHÂN LOẠI SKILL DỰA TRÊN CẤU TRÚC VARIANT (giống script.js) ---
         this.type = "active"; // Mặc định là Active
 
         if(this.skill.skillType === "ESkillType::Passive") {
@@ -366,7 +376,7 @@ class SkillSimulator {
         } 
         else if (
             (this.skill.skillType && this.skill.skillType.toLowerCase().includes("stigma")) || 
-            runeCount === 4 // <--- QUY TẮC BẠN YÊU CẦU: 4 SPEC = STIGMA
+            !this.skill.hasCombo // Stigma: không có variant combo nhiều rune
         ) {
             this.type = "stigma";
         }
@@ -382,11 +392,11 @@ class SkillSimulator {
 
     autoUpdateStigmaRunes() {
         this.selectedRunes = [];
-        // Stigma: 4 Rune tương ứng level 5, 10, 15, 20
-        if(this.currentLevel >= 5) this.selectedRunes.push(1);
-        if(this.currentLevel >= 10) this.selectedRunes.push(2);
-        if(this.currentLevel >= 15) this.selectedRunes.push(3);
-        if(this.currentLevel >= 20) this.selectedRunes.push(4);
+        // Tự động theo số rune thực tế của skill, mỗi 5 cấp mở 1 rune
+        const runeCount = Object.keys(this.skill.runes).length;
+        for(let i = 1; i <= runeCount; i++) {
+            if(this.currentLevel >= i * 5) this.selectedRunes.push(i);
+        }
     }
 
     setLevel(lv) {
@@ -727,7 +737,7 @@ function processExcelSmart(rows, iconDb) {
             const suffix = fid.substring(4); 
 
             if (!finalMap[prefix]) {
-                finalMap[prefix] = { prefix: prefix, baseId: fid, className: cls, variants: {}, runes: {}, skillType: null };
+                finalMap[prefix] = { prefix: prefix, baseId: fid, className: cls, variants: {}, runes: {}, hasCombo: false, skillType: null };
                 const idNum = parseInt(prefix + "0000");
                 if (iconDb[idNum] && iconDb[idNum].type) finalMap[prefix].skillType = iconDb[idNum].type;
             }
@@ -740,6 +750,9 @@ function processExcelSmart(rows, iconDb) {
                  g.baseId = fid;
             }
             g.variants[suffix] = { desc_en: item.desc_en || "", desc_vi: item.desc_vi || "" };
+
+            // Combo variant (VD: 1200, 1230...) = skill Active có ghép rune; Stigma chỉ có dạng 00X0
+            if(!suffix.startsWith('00') && suffix.endsWith('0')) g.hasCombo = true;
 
             if (item.rune_en || item.rune_vi) {
                 const idx = parseInt(suffix[2]); 
