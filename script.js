@@ -87,21 +87,30 @@ async function loadAllData(folderName) {
         }
     });
 
-    const excelPromise = (async () => {
+    // Fetch text.xlsx song song để không chậm, nhưng KHÔNG processExcel ngay —
+    // processExcel cần đọc iconDb (đổ từ Skill.json), nên phải đợi toàn bộ
+    // jsonPromises xong trước, nếu không sẽ bị race condition: có lúc
+    // processExcel chạy trước khi Skill.json kịp load xong -> gộp chain/variant
+    // sai hoặc thiếu, không ổn định giữa các lần load trang.
+    const excelDataPromise = (async () => {
         try {
             const res = await fetch(`${basePath}/text.xlsx`);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const buf = await res.arrayBuffer();
             const wb = XLSX.read(new Uint8Array(buf), {type:'array'});
-            processExcel(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1}));
-            updateProgress();
+            return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
         } catch (e) {
             console.error("Lỗi tải Excel:", e);
             setStatusError(`Thiếu file: ${folderName}/text.xlsx`);
+            return null;
         }
     })();
 
-    await Promise.all([...jsonPromises, excelPromise]);
+    const [, excelRows] = await Promise.all([Promise.all(jsonPromises), excelDataPromise]);
+    if (excelRows) {
+        processExcel(excelRows);
+        updateProgress();
+    }
 
     if (document.getElementById('status').className !== 'status-error') {
         document.getElementById('ui-spinner').style.display = 'none';

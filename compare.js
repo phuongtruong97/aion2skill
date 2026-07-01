@@ -145,12 +145,14 @@ function extractJsonIds(desc) {
         let lookupType = 'dmg'; // Mặc định tìm trong SkillEffect (dbDmg)
 
         // Phân loại tìm trong dbAbn hay dbDmg
-        if (tagType.includes('abe') || tagType.includes('sef') === false && content.includes('abe')) {
-            lookupType = 'abn';
-            // Trường hợp tag {se_abe_dmg:ID...} hoặc {se_abe:ID...}
-             if (tagType === 'se_abe' && parts[1]) id = parseInt(parts[1]); // Fix cho trường hợp se_abe đặc biệt nếu có
-        } else if (tagType === 'sef') {
+        if (tagType === 'sef') {
             lookupType = 'filter';
+        } else if (tagType.includes('abe')) {
+            lookupType = 'abn';
+            // {se_abe:SKIP_ID:REAL_ID:...} — ID thực nằm ở parts[1]
+            if (tagType === 'se_abe' && parts[1] && !isNaN(parseInt(parts[1]))) {
+                id = parseInt(parts[1]);
+            }
         }
 
         // Chỉ push nếu ID hợp lệ
@@ -685,15 +687,21 @@ function processExcelSmart(rows, iconDb) {
         if (m) {
             const fid = m[1]; 
             let cls = "General"; 
-            if(strId.includes("CLERIC")) cls = "CLERIC";
-            else if(strId.includes("ASSASSIN")) cls = "ASSASSIN";
+            if(strId.includes("ASSASSIN")) cls = "ASSASSIN";
+            else if(strId.includes("CLERIC")) cls = "CLERIC";
+            else if(strId.includes("WARRIOR")) cls = "WARRIOR";
+            else if(strId.includes("MAGE")) cls = "MAGE";
             else if(strId.includes("ARCHER")) cls = "ARCHER";
+            else if(strId.includes("WARLORD")) cls = "WARLORD";
+            else if(strId.includes("BLADEDANCER")) cls = "BLADEDANCER";
+            else if(strId.includes("GUNSLINGER")) cls = "GUNSLINGER";
+            else if(strId.includes("CHANTER")) cls = "CHANTER";
             else if(strId.includes("TEMPLAR")) cls = "TEMPLAR";
             else if(strId.includes("GLADIATOR")) cls = "GLADIATOR";
-            else if(strId.includes("CHANTER")) cls = "CHANTER";
-            else if(strId.includes("ELEMENTALIST")) cls = "ELEMENTALIST";
-            else if(strId.includes("RANGER")) cls = "RANGER";
             else if(strId.includes("SORCERER")) cls = "SORCERER";
+            else if(strId.includes("SPIRITMASTER")) cls = "SPIRITMASTER";
+            else if(strId.includes("RANGER")) cls = "RANGER";
+            else if(strId.includes("ELEMENTALIST")) cls = "ELEMENTALIST";
 
             if (!rawById[cls]) rawById[cls] = {};
             if (!rawById[cls][fid]) rawById[cls][fid] = { id: fid };

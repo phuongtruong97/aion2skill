@@ -366,7 +366,7 @@ input[type=range] { flex-grow: 1; accent-color: var(--accent); cursor: pointer; 
 
 /* Description */
 .desc-area {
-    font-size: 15 px;
+    font-size: 14 px;
     line-height: 1.65;
     color: #ccc;
     min-height: 80px;
@@ -413,7 +413,14 @@ input[type=range] { flex-grow: 1; accent-color: var(--accent); cursor: pointer; 
 }
 .rune-row:hover { background: #262933; }
 .rune-row.active { border-color: var(--accent); background: #2e2518; }
-.rune-text { font-size: 15px; color: #b0b4bf; line-height: 1.4; font-family: 'GameBody', 'Inter', 'Segoe UI', sans-serif; }
+.rune-text {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: #b0b4bf;
+    line-height: 1.4;
+    font-family: 'GameBody', 'Inter', 'Segoe UI', sans-serif;
+}
 
 /* ==============================
    LIST PANEL — ingame style
